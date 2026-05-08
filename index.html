@@ -7,8 +7,11 @@
   <meta name="theme-color" content="#fff8ee" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="preconnect" href="https://dapi.kakao.com" crossorigin />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     :root {
       --bg: #fff8ee;
@@ -267,6 +270,7 @@
     .step__heading {
       flex: 1;
       min-width: 0;
+      padding-right: 76px;
     }
     .step__kind {
       font-size: 0.85rem;
@@ -295,34 +299,66 @@
       line-height: 1.35;
     }
 
-    /* check button (top-right) */
+    /* check button (top-right) — labelled to make it obvious */
     .step__check {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 2.5px solid var(--line);
-      background: transparent;
+      top: 14px;
+      right: 14px;
+      min-width: 64px;
+      height: 64px;
+      padding: 6px 4px;
+      border-radius: 16px;
+      border: 2.5px dashed var(--walk);
+      background: #f0fdf4;
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2px;
       transition: all 0.2s ease;
-      padding: 0;
+      color: var(--walk);
+    }
+    @media (prefers-color-scheme: dark) {
+      .step__check { background: #0f3a1d; border-color: #4ade80; color: #4ade80; }
     }
     .step__check svg {
       width: 22px; height: 22px;
-      color: white;
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      stroke: currentColor;
+    }
+    .step__check__text {
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
     }
     .card.is-done .step__check {
       background: var(--walk);
+      border-style: solid;
       border-color: var(--walk);
+      color: white;
     }
-    .card.is-done .step__check svg { opacity: 1; }
+    @media (prefers-color-scheme: dark) {
+      .card.is-done .step__check { background: var(--walk); color: white; border-color: var(--walk); }
+    }
+    .card.is-done .step__check__text::before { content: "완료 "; }
+
+    /* tutorial hint — shown above the steps so the parents understand */
+    .hint {
+      margin: 16px 0 4px;
+      padding: 14px 16px;
+      background: #eff6ff;
+      border-left: 5px solid var(--bus);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: #0b3a8a;
+    }
+    @media (prefers-color-scheme: dark) {
+      .hint { background: #0c1f3f; color: #cfe2ff; }
+    }
+    .hint b { font-weight: 800; }
 
     /* keypoint box — most important info */
     .step__keypoint {
@@ -588,19 +624,24 @@
     }
     .leaflet-container {
       font-family: inherit !important;
+      background: #f1ede4 !important;
     }
-    .pin-label {
+    @media (prefers-color-scheme: dark) {
+      .leaflet-container { background: #2a2418 !important; }
+    }
+    .leaflet-tooltip.pin-label-tooltip {
       background: white;
       padding: 4px 8px;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--ink);
       white-space: nowrap;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       border: none;
     }
-    .pin-label::before { display: none; }
+    .leaflet-tooltip.pin-label-tooltip::before { display: none; }
+    .pin-marker-wrap, .user-marker-wrap { background: transparent !important; border: none !important; }
     .pin-marker {
       width: 28px;
       height: 28px;
@@ -742,10 +783,17 @@
       </span>
     </button>
 
+    <!-- ============ HOW-TO HINT ============ -->
+    <div class="hint" role="note">
+      각 단계 오른쪽의 <b>초록 점선 네모</b>(끝나면 누르기)를 누르면 그 단계가 완료 처리돼요.<br>
+      어디까지 왔는지 표시되니까, 헷갈릴 때 <b>지금 어느 칸</b>인지 보면 됩니다.
+    </div>
+
     <!-- ============ STEP 1: walk to bus stop ============ -->
     <article class="card step step--walk" data-step="1">
       <button class="step__check" type="button" aria-label="1단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">1</div>
@@ -775,6 +823,7 @@
     <article class="card step step--bus" data-step="2">
       <button class="step__check" type="button" aria-label="2단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">2</div>
@@ -805,6 +854,7 @@
     <article class="card step step--line4" data-step="3">
       <button class="step__check" type="button" aria-label="3단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">3</div>
@@ -834,6 +884,7 @@
     <article class="card step step--line4-ride" data-step="4">
       <button class="step__check" type="button" aria-label="4단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">4</div>
@@ -879,6 +930,7 @@
     <article class="card step step--line1" data-step="5">
       <button class="step__check" type="button" aria-label="5단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">5</div>
@@ -908,6 +960,7 @@
     <article class="card step step--line1-ride" data-step="6">
       <button class="step__check" type="button" aria-label="6단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">6</div>
@@ -943,6 +996,7 @@
     <article class="card step step--exit" data-step="7">
       <button class="step__check" type="button" aria-label="7단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">7</div>
@@ -972,6 +1026,7 @@
     <article class="card step step--arrive" data-step="8">
       <button class="step__check" type="button" aria-label="8단계 완료" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <span class="step__check__text">끝나면<br>누르기</span>
       </button>
       <div class="step__head">
         <div class="step__num">8</div>
@@ -1036,7 +1091,9 @@
     </section>
   </main>
 
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cf55a1d5554efe23cb943b5397d00e36&autoload=false"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
   <script>
     'use strict';
 
@@ -1154,7 +1211,7 @@
       return a;
     }
 
-    /* -------- destination map (Kakao Maps) -------- */
+    /* -------- destination map (Leaflet + CartoDB Voyager) -------- */
     const DESTS = [
       { lat: 37.57025, lng: 126.98330, name: '종각역 3-1번 출구', color: '#6b21a8', label: '①' },
       { lat: 37.57387, lng: 126.98594, name: '꽃의 시간',         color: '#ec4899', label: '②' },
@@ -1166,93 +1223,84 @@
       if (el) el.innerHTML = `<div style="padding:24px;text-align:center;color:#888;font-size:0.95rem;line-height:1.6;">${msg}</div>`;
     }
 
-    function makePinHtml(d) {
-      return `<div class="pin-marker" style="background:${d.color}"><span>${d.label}</span></div>`;
-    }
-
-    function initKakaoMap() {
-      if (typeof kakao === 'undefined' || !kakao.maps) {
+    function initMap() {
+      if (typeof L === 'undefined') {
         showMapError('지도를 불러올 수 없어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.');
         return;
       }
-      kakao.maps.load(() => {
-        const container = document.getElementById('destmap');
-        const map = new kakao.maps.Map(container, {
-          center: new kakao.maps.LatLng(37.5722, 126.9852),
-          level: 3,
-        });
-        map.setZoomable(true);
-        new kakao.maps.ZoomControl();
+      const container = document.getElementById('destmap');
+      const map = L.map(container, {
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: false,
+      }).setView([37.5722, 126.9852], 17);
 
-        const bounds = new kakao.maps.LatLngBounds();
-        DESTS.forEach(d => {
-          const pos = new kakao.maps.LatLng(d.lat, d.lng);
-          bounds.extend(pos);
-          const overlay = new kakao.maps.CustomOverlay({
-            position: pos,
-            content: makePinHtml(d),
-            yAnchor: 1,
-            xAnchor: 0.5,
-            clickable: true,
-          });
-          overlay.setMap(map);
-          // Name label always visible above marker
-          const labelOverlay = new kakao.maps.CustomOverlay({
-            position: pos,
-            content: `<div class="pin-label">${d.name}</div>`,
-            yAnchor: 2.4,
-            xAnchor: 0.5,
-          });
-          labelOverlay.setMap(map);
-        });
-        map.setBounds(bounds, 30, 30, 30, 30);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(map);
 
-        // Real-time user location
-        let userOverlay = null;
-        let userCircle = null;
-        onUserPos((p) => {
-          const pos = new kakao.maps.LatLng(p.lat, p.lng);
-          if (!userOverlay) {
-            userOverlay = new kakao.maps.CustomOverlay({
-              position: pos,
-              content: '<div class="pin-marker pin-marker--user"></div>',
-              yAnchor: 0.5,
-              xAnchor: 0.5,
-              zIndex: 1000,
-            });
-            userOverlay.setMap(map);
+      const bounds = L.latLngBounds([]);
+      DESTS.forEach(d => {
+        bounds.extend([d.lat, d.lng]);
+        const icon = L.divIcon({
+          className: 'pin-marker-wrap',
+          html: `<div class="pin-marker" style="background:${d.color}"><span>${d.label}</span></div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 28],
+        });
+        L.marker([d.lat, d.lng], { icon }).addTo(map).bindTooltip(d.name, {
+          permanent: true,
+          direction: 'top',
+          offset: [0, -28],
+          className: 'pin-label-tooltip',
+        });
+      });
+      map.fitBounds(bounds, { padding: [40, 40] });
+
+      // Real-time user location
+      let userMarker = null;
+      let userCircle = null;
+      onUserPos((p) => {
+        const pos = [p.lat, p.lng];
+        if (!userMarker) {
+          const icon = L.divIcon({
+            className: 'user-marker-wrap',
+            html: '<div class="pin-marker pin-marker--user"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+          userMarker = L.marker(pos, { icon, zIndexOffset: 1000 }).addTo(map);
+        } else {
+          userMarker.setLatLng(pos);
+        }
+        if (p.acc && p.acc < 500) {
+          if (!userCircle) {
+            userCircle = L.circle(pos, {
+              radius: p.acc,
+              color: '#2563eb',
+              weight: 1,
+              opacity: 0.4,
+              fillColor: '#2563eb',
+              fillOpacity: 0.08,
+            }).addTo(map);
           } else {
-            userOverlay.setPosition(pos);
+            userCircle.setLatLng(pos);
+            userCircle.setRadius(p.acc);
           }
-          if (p.acc && p.acc < 500) {
-            if (!userCircle) {
-              userCircle = new kakao.maps.Circle({
-                center: pos,
-                radius: p.acc,
-                strokeWeight: 1,
-                strokeColor: '#2563eb',
-                strokeOpacity: 0.4,
-                fillColor: '#2563eb',
-                fillOpacity: 0.08,
-              });
-              userCircle.setMap(map);
-            } else {
-              userCircle.setOptions({ center: pos, radius: p.acc });
-            }
-          }
-        });
+        }
+      });
 
-        // Re-center when window resizes (e.g., orientation change)
-        window.addEventListener('resize', () => {
-          setTimeout(() => map.relayout(), 100);
-        });
+      window.addEventListener('resize', () => {
+        setTimeout(() => map.invalidateSize(), 120);
       });
     }
 
     if (document.readyState === 'complete') {
-      initKakaoMap();
+      initMap();
     } else {
-      window.addEventListener('load', initKakaoMap);
+      window.addEventListener('load', initMap);
     }
 
     document.querySelectorAll('[data-maps]').forEach(container => {
