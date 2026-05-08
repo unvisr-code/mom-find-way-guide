@@ -7,11 +7,8 @@
   <meta name="theme-color" content="#fff8ee" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="preconnect" href="https://unpkg.com" crossorigin />
-  <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
+  <link rel="preconnect" href="https://dapi.kakao.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     :root {
       --bg: #fff8ee;
@@ -622,14 +619,7 @@
       border: 2px solid white;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
     }
-    .leaflet-container {
-      font-family: inherit !important;
-      background: #f1ede4 !important;
-    }
-    @media (prefers-color-scheme: dark) {
-      .leaflet-container { background: #2a2418 !important; }
-    }
-    .leaflet-tooltip.pin-label-tooltip {
+    .pin-label {
       background: white;
       padding: 4px 8px;
       border-radius: 8px;
@@ -640,8 +630,6 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       border: none;
     }
-    .leaflet-tooltip.pin-label-tooltip::before { display: none; }
-    .pin-marker-wrap, .user-marker-wrap { background: transparent !important; border: none !important; }
     .pin-marker {
       width: 28px;
       height: 28px;
@@ -1039,9 +1027,7 @@
         </div>
       </div>
 
-      <div class="destmap" id="destmap" aria-label="종각역에서 갤러리 라메르까지 지도">
-        <div class="destmap__hint" id="destmapHint"><b>파란 점</b>이 내 위치 &middot; 핀 누르면 이름 표시</div>
-      </div>
+      <div class="destmap" id="destmap" aria-label="종각역에서 갤러리 라메르까지 지도"></div>
       <div class="destmap__legend">
         <span><i style="background:#6b21a8"></i> 종각역 출구</span>
         <span><i style="background:#ec4899"></i> 꽃의 시간</span>
@@ -1091,9 +1077,7 @@
     </section>
   </main>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cf55a1d5554efe23cb943b5397d00e36&autoload=false"></script>
   <script>
     'use strict';
 
@@ -1211,7 +1195,7 @@
       return a;
     }
 
-    /* -------- destination map (Leaflet + CartoDB Voyager) -------- */
+    /* -------- destination map (Kakao Maps) -------- */
     const DESTS = [
       { lat: 37.57025, lng: 126.98330, name: '종각역 3-1번 출구', color: '#6b21a8', label: '①' },
       { lat: 37.57387, lng: 126.98594, name: '꽃의 시간',         color: '#ec4899', label: '②' },
@@ -1223,84 +1207,89 @@
       if (el) el.innerHTML = `<div style="padding:24px;text-align:center;color:#888;font-size:0.95rem;line-height:1.6;">${msg}</div>`;
     }
 
-    function initMap() {
-      if (typeof L === 'undefined') {
+    function makePinHtml(d) {
+      return `<div class="pin-marker" style="background:${d.color}"><span>${d.label}</span></div>`;
+    }
+
+    function initKakaoMap() {
+      if (typeof kakao === 'undefined' || !kakao.maps) {
         showMapError('지도를 불러올 수 없어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.');
         return;
       }
-      const container = document.getElementById('destmap');
-      const map = L.map(container, {
-        zoomControl: true,
-        attributionControl: true,
-        scrollWheelZoom: false,
-      }).setView([37.5722, 126.9852], 17);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19,
-      }).addTo(map);
-
-      const bounds = L.latLngBounds([]);
-      DESTS.forEach(d => {
-        bounds.extend([d.lat, d.lng]);
-        const icon = L.divIcon({
-          className: 'pin-marker-wrap',
-          html: `<div class="pin-marker" style="background:${d.color}"><span>${d.label}</span></div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 28],
+      kakao.maps.load(() => {
+        const container = document.getElementById('destmap');
+        const map = new kakao.maps.Map(container, {
+          center: new kakao.maps.LatLng(37.5722, 126.9852),
+          level: 3,
         });
-        L.marker([d.lat, d.lng], { icon }).addTo(map).bindTooltip(d.name, {
-          permanent: true,
-          direction: 'top',
-          offset: [0, -28],
-          className: 'pin-label-tooltip',
-        });
-      });
-      map.fitBounds(bounds, { padding: [40, 40] });
+        map.setZoomable(true);
 
-      // Real-time user location
-      let userMarker = null;
-      let userCircle = null;
-      onUserPos((p) => {
-        const pos = [p.lat, p.lng];
-        if (!userMarker) {
-          const icon = L.divIcon({
-            className: 'user-marker-wrap',
-            html: '<div class="pin-marker pin-marker--user"></div>',
-            iconSize: [18, 18],
-            iconAnchor: [9, 9],
+        const bounds = new kakao.maps.LatLngBounds();
+        DESTS.forEach(d => {
+          const pos = new kakao.maps.LatLng(d.lat, d.lng);
+          bounds.extend(pos);
+          const overlay = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: makePinHtml(d),
+            yAnchor: 1,
+            xAnchor: 0.5,
+            clickable: true,
           });
-          userMarker = L.marker(pos, { icon, zIndexOffset: 1000 }).addTo(map);
-        } else {
-          userMarker.setLatLng(pos);
-        }
-        if (p.acc && p.acc < 500) {
-          if (!userCircle) {
-            userCircle = L.circle(pos, {
-              radius: p.acc,
-              color: '#2563eb',
-              weight: 1,
-              opacity: 0.4,
-              fillColor: '#2563eb',
-              fillOpacity: 0.08,
-            }).addTo(map);
-          } else {
-            userCircle.setLatLng(pos);
-            userCircle.setRadius(p.acc);
-          }
-        }
-      });
+          overlay.setMap(map);
+          const labelOverlay = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: `<div class="pin-label">${d.name}</div>`,
+            yAnchor: 2.4,
+            xAnchor: 0.5,
+          });
+          labelOverlay.setMap(map);
+        });
+        map.setBounds(bounds, 30, 30, 30, 30);
 
-      window.addEventListener('resize', () => {
-        setTimeout(() => map.invalidateSize(), 120);
+        let userOverlay = null;
+        let userCircle = null;
+        onUserPos((p) => {
+          const pos = new kakao.maps.LatLng(p.lat, p.lng);
+          if (!userOverlay) {
+            userOverlay = new kakao.maps.CustomOverlay({
+              position: pos,
+              content: '<div class="pin-marker pin-marker--user"></div>',
+              yAnchor: 0.5,
+              xAnchor: 0.5,
+              zIndex: 1000,
+            });
+            userOverlay.setMap(map);
+          } else {
+            userOverlay.setPosition(pos);
+          }
+          if (p.acc && p.acc < 500) {
+            if (!userCircle) {
+              userCircle = new kakao.maps.Circle({
+                center: pos,
+                radius: p.acc,
+                strokeWeight: 1,
+                strokeColor: '#2563eb',
+                strokeOpacity: 0.4,
+                fillColor: '#2563eb',
+                fillOpacity: 0.08,
+              });
+              userCircle.setMap(map);
+            } else {
+              userCircle.setOptions({ center: pos, radius: p.acc });
+            }
+          }
+        });
+
+        window.addEventListener('resize', () => {
+          setTimeout(() => map.relayout(), 100);
+        });
       });
     }
 
     if (document.readyState === 'complete') {
-      initMap();
+      initKakaoMap();
     } else {
-      window.addEventListener('load', initMap);
+      window.addEventListener('load', initKakaoMap);
     }
 
     document.querySelectorAll('[data-maps]').forEach(container => {
