@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>내일 서울 가는 길 — 갤러리 라메르</title>
+  <meta name="theme-color" content="#fff8ee" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://dapi.kakao.com" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --bg: #fff8ee;
+      --paper: #ffffff;
+      --ink: #1a1a1a;
+      --ink-2: #4a4a4a;
+      --ink-3: #6b6b6b;
+      --line: #ececec;
+      --warn-bg: #fff3b0;
+      --warn-ink: #6b4a00;
+      --bad-bg: #ffe2e2;
+      --bad-ink: #8b1d1d;
+      --walk: #16a34a;
+      --bus: #2563eb;
+      --line4: #00a5de;
+      --line1: #0052a4;
+      --arrive: #e0654b;
+      --shadow: 0 6px 20px rgba(40, 30, 20, 0.06), 0 2px 6px rgba(40, 30, 20, 0.04);
+      --shadow-strong: 0 10px 30px rgba(40, 30, 20, 0.10), 0 4px 10px rgba(40, 30, 20, 0.06);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --tap: 56px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #15110a;
+        --paper: #221c12;
+        --ink: #f4ebdb;
+        --ink-2: #cdc2af;
+        --ink-3: #9a8f7c;
+        --line: #3a3024;
+        --warn-bg: #4a3a08;
+        --warn-ink: #ffe28a;
+        --bad-bg: #4a1818;
+        --bad-ink: #ffb3b3;
+        --shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+        --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    html {
+      font-size: 17px;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    }
+
+    main {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 22px 18px 80px;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      padding: 16px 4px 12px;
+    }
+    .header__eyebrow {
+      font-size: 0.95rem;
+      color: var(--ink-3);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .header__title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      margin: 4px 0 8px;
+      letter-spacing: -0.025em;
+    }
+    .header__route {
+      font-size: 1.05rem;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+    .header__route b { color: var(--ink); font-weight: 700; }
+
+    .progress {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .progress__bar {
+      flex: 1;
+      height: 12px;
+      background: var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress__fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--walk), var(--bus), var(--line4), var(--line1), var(--arrive));
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .progress__text {
+      font-size: 0.95rem;
+      color: var(--ink-2);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      min-width: 38px;
+      text-align: right;
+    }
+
+    /* ---------- Cards (shared) ---------- */
+    .card {
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin: 18px 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .card.is-done {
+      opacity: 0.45;
+      transform: scale(0.985);
+    }
+    .card.is-done .step__title,
+    .card.is-done .step__keypoint b {
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    /* ---------- Summary card ---------- */
+    .summary {
+      background: linear-gradient(180deg, #fff7d6 0%, #ffe9a8 100%);
+      color: #2c1f00;
+      border-radius: var(--radius);
+      padding: 24px 22px;
+      box-shadow: var(--shadow-strong);
+      margin: 22px 0 8px;
+      border: 1.5px solid #f3d36a;
+    }
+    @media (prefers-color-scheme: dark) {
+      .summary {
+        background: linear-gradient(180deg, #4a3608 0%, #6b4f10 100%);
+        color: #fff3c4;
+        border-color: #87650f;
+      }
+    }
+    .summary__title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .summary__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .summary__list li {
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .summary__list li b {
+      font-weight: 800;
+      background: rgba(0,0,0,0.07);
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+    @media (prefers-color-scheme: dark) {
+      .summary__list li b { background: rgba(255,255,255,0.12); }
+    }
+    .summary__time {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- Location button ---------- */
+    .geo {
+      margin: 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: var(--paper);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      min-height: var(--tap);
+    }
+    .geo__icon {
+      width: 28px; height: 28px;
+      flex-shrink: 0;
+      color: var(--bus);
+    }
+    .geo__label {
+      flex: 1;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .geo__status {
+      font-size: 0.85rem;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+    .geo.is-active .geo__icon { color: var(--walk); }
+    .geo.is-active .geo__status { color: var(--walk); font-weight: 700; }
+
+    /* ---------- Step card ---------- */
+    .step {
+      position: relative;
+    }
+    .step__head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .step__num {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: white;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .step--walk .step__num { background: var(--walk); }
+    .step--bus .step__num { background: var(--bus); }
+    .step--line4 .step__num { background: var(--line4); }
+    .step--line4-ride .step__num { background: var(--line4); }
+    .step--line1 .step__num { background: var(--line1); }
+    .step--line1-ride .step__num { background: var(--line1); }
+    .step--exit .step__num { background: #6b21a8; }
+    .step--arrive .step__num { background: var(--arrive); }
+
+    .step__heading {
+      flex: 1;
+      min-width: 0;
+    }
+    .step__kind {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink-3);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step__kind .icon {
+      width: 16px; height: 16px;
+    }
+    .step--walk .step__kind { color: var(--walk); }
+    .step--bus .step__kind { color: var(--bus); }
+    .step--line4 .step__kind, .step--line4-ride .step__kind { color: var(--line4); }
+    .step--line1 .step__kind, .step--line1-ride .step__kind { color: var(--line1); }
+    .step--arrive .step__kind { color: var(--arrive); }
+    .step--exit .step__kind { color: #6b21a8; }
+
+    .step__title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 4px 0 0;
+      letter-spacing: -0.02em;
+      line-height: 1.35;
+    }
+
+    /* check button (top-right) */
+    .step__check {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2.5px solid var(--line);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+    .step__check svg {
+      width: 22px; height: 22px;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .card.is-done .step__check {
+      background: var(--walk);
+      border-color: var(--walk);
+    }
+    .card.is-done .step__check svg { opacity: 1; }
+
+    /* keypoint box — most important info */
+    .step__keypoint {
+      margin: 14px 0;
+      padding: 18px 18px;
+      border-radius: var(--radius-sm);
+      background: #f5f1e8;
+      border-left: 5px solid var(--ink);
+    }
+    @media (prefers-color-scheme: dark) {
+      .step__keypoint { background: #2c2519; }
+    }
+    .step--walk .step__keypoint { border-left-color: var(--walk); }
+    .step--bus .step__keypoint { border-left-color: var(--bus); }
+    .step--line4 .step__keypoint, .step--line4-ride .step__keypoint { border-left-color: var(--line4); }
+    .step--line1 .step__keypoint, .step--line1-ride .step__keypoint { border-left-color: var(--line1); }
+    .step--exit .step__keypoint { border-left-color: #6b21a8; }
+    .step--arrive .step__keypoint { border-left-color: var(--arrive); }
+
+    .step__keypoint__label {
+      font-size: 0.9rem;
+      color: var(--ink-3);
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+    .step__keypoint b {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: inline-block;
+      line-height: 1.2;
+    }
+    .step__keypoint .keypoint--xl b {
+      font-size: 2.2rem;
+    }
+
+    .step__notes {
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+    .step__notes li {
+      font-size: 1rem;
+      color: var(--ink-2);
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .step__notes li::before {
+      content: "";
+      position: absolute;
+      left: 4px; top: 10px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ink-3);
+    }
+
+    .warn {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      background: var(--bad-bg);
+      color: var(--bad-ink);
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .warn svg {
+      width: 22px; height: 22px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* subway station chain — vertical timeline */
+    .stations {
+      margin: 14px 0 0;
+      padding: 16px 18px;
+      background: #f7f5f0;
+      border-radius: 14px;
+    }
+    @media (prefers-color-scheme: dark) {
+      .stations { background: #1d1810; }
+    }
+    .station {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      padding: 4px 0;
+    }
+    .station__rail {
+      width: 4px;
+      flex-shrink: 0;
+      align-self: stretch;
+      background: currentColor;
+      margin-left: 6px;
+      margin-right: 4px;
+    }
+    .station__dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .station__row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 20px;
+    }
+    .station__row--rail {
+      min-height: 22px;
+    }
+    .station__row--rail .station__rail {
+      margin-left: 11px;
+    }
+    .station__name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink-2);
+      letter-spacing: -0.01em;
+    }
+    .station--start .station__dot,
+    .station--end .station__dot {
+      width: 22px;
+      height: 22px;
+      box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px currentColor;
+      margin: 4px 0;
+    }
+    .station--start .station__name,
+    .station--end .station__name {
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .station__tag {
+      margin-left: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .station__tag span {
+      color: var(--paper);
+      mix-blend-mode: normal;
+    }
+    /* Use a different approach: solid colored badge with white text */
+    .station__tag {
+      background: var(--paper);
+      color: currentColor;
+      border: 1.5px solid currentColor;
+    }
+    .stations--line4 { color: var(--line4); }
+    .stations--line1 { color: var(--line1); }
+
+    /* map buttons */
+    .maps {
+      margin: 14px 0 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .map-btn {
+      min-height: var(--tap);
+      border: 1.5px solid var(--line);
+      background: var(--paper);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      font: inherit;
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .map-btn:active { transform: scale(0.97); }
+    .map-btn__brand {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--ink-3);
+      letter-spacing: 0.02em;
+    }
+    .map-btn__name {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .map-btn--naver { border-color: #03c75a40; }
+    .map-btn--naver .map-btn__name { color: #03c75a; }
+    .map-btn--kakao { border-color: #ffcc0080; }
+    .map-btn--kakao .map-btn__name { color: #d4a800; }
+    .map-btn--tmap { border-color: #ff317480; }
+    .map-btn--tmap .map-btn__name { color: #e91566; }
+    @media (prefers-color-scheme: dark) {
+      .map-btn--naver .map-btn__name { color: #4ade80; }
+      .map-btn--kakao .map-btn__name { color: #fde047; }
+      .map-btn--tmap .map-btn__name { color: #fb7185; }
+    }
+
+    /* destination map */
+    .destmap {
+      position: relative;
+      margin: 14px 0 0;
+      width: 100%;
+      height: 300px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #e8e4dc;
+      border: 1.5px solid var(--line);
+    }
+    .destmap__hint {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 500;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(6px);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      pointer-events: none;
+    }
+    @media (prefers-color-scheme: dark) {
+      .destmap__hint { background: rgba(34, 28, 18, 0.96); color: var(--ink); }
+    }
+    .destmap__hint b { color: var(--arrive); }
+    .destmap__legend {
+      margin: 8px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 0 4px;
+      font-size: 0.85rem;
+      color: var(--ink-2);
+    }
+    .destmap__legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .destmap__legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    }
+    .leaflet-container {
+      font-family: inherit !important;
+    }
+    .pin-label {
+      background: white;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      border: none;
+    }
+    .pin-label::before { display: none; }
+    .pin-marker {
+      width: 28px;
+      height: 28px;
+      border-radius: 50% 50% 50% 0;
+      background: var(--arrive);
+      transform: rotate(-45deg);
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+    .pin-marker span { transform: rotate(45deg); }
+    .pin-marker--exit { background: #6b21a8; }
+    .pin-marker--flower { background: #ec4899; }
+    .pin-marker--gallery { background: var(--arrive); }
+    .pin-marker--user {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #2563eb;
+      transform: none;
+      border: 3px solid white;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), 0 2px 6px rgba(0,0,0,0.3);
+      animation: userPulse 2s infinite;
+    }
+    @keyframes userPulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), 0 2px 6px rgba(0,0,0,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0.10), 0 2px 6px rgba(0,0,0,0.3); }
+    }
+
+    /* arrival big card variants */
+    .place {
+      background: var(--paper);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin: 12px 0;
+      box-shadow: 0 2px 8px rgba(40,30,20,0.04);
+      border: 1.5px solid var(--line);
+    }
+    .place__name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 0 0 4px;
+      color: var(--arrive);
+    }
+    .place__addr {
+      font-size: 0.95rem;
+      color: var(--ink-2);
+      margin: 0 0 12px;
+      line-height: 1.5;
+    }
+    .place__open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: var(--tap);
+      background: var(--arrive);
+      color: white;
+      border-radius: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 1.05rem;
+    }
+    .place__open svg { width: 20px; height: 20px; }
+
+    /* footer */
+    .footer {
+      margin-top: 28px;
+      padding: 22px;
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .footer__row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 0;
+    }
+    .footer__row + .footer__row {
+      border-top: 1px solid var(--line);
+    }
+    .footer__label {
+      font-size: 0.95rem;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+    .footer__value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    /* generic icon */
+    .icon { display: inline-block; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- ============ HEADER ============ -->
+    <header class="header">
+      <div class="header__eyebrow">2026년 5월 9일 토요일</div>
+      <h1 class="header__title">내일 서울 가는 길</h1>
+      <p class="header__route"><b>봉담아이파크</b> &rarr; <b>갤러리 라메르</b></p>
+      <div class="progress" aria-label="진행률">
+        <div class="progress__bar"><div class="progress__fill" id="progressFill"></div></div>
+        <div class="progress__text"><span id="progressNum">0</span>/8</div>
+      </div>
+    </header>
+
+    <!-- ============ SUMMARY ============ -->
+    <section class="summary" aria-labelledby="summaryTitle">
+      <h2 class="summary__title" id="summaryTitle">
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.39 4.84L20 8l-4 3.9.94 5.5L12 14.77 7.06 17.4 8 11.9 4 8l5.61-1.16L12 2z"/></svg>
+        헷갈리면 이것만 기억하세요
+      </h2>
+      <ul class="summary__list">
+        <li><span class="summary__time">11:05</span> 정류장 도착, <span class="summary__time">11:10</span> <b>7790번</b></li>
+        <li>사당역 4호선 &mdash; <b>진접/당고개 방면</b></li>
+        <li>서울역 1호선 &mdash; <b>시청·종각 방향</b></li>
+        <li>종각역 &mdash; <b>3-1번 출구</b></li>
+        <li>인사동5길 직진 &rarr; 갤러리 라메르</li>
+      </ul>
+    </section>
+
+    <!-- ============ LOCATION BUTTON ============ -->
+    <button class="geo" id="geoBtn" type="button" aria-pressed="false">
+      <svg class="geo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span style="flex:1; min-width:0;">
+        <span class="geo__label" id="geoLabel">내 위치 켜기</span><br>
+        <span class="geo__status" id="geoStatus">출발 전 한 번 눌러서 권한을 허용해 주세요</span>
+      </span>
+    </button>
+
+    <!-- ============ STEP 1: walk to bus stop ============ -->
+    <article class="card step step--walk" data-step="1">
+      <button class="step__check" type="button" aria-label="1단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">1</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M9 22l1.5-7L8 12l-2-4M14 22l-1-6 3-2 1.5 4"/></svg>
+            도보
+          </div>
+          <h3 class="step__title">집 &rarr; 이파크정문 정류장</h3>
+        </div>
+      </div>
+      <div class="step__keypoint">
+        <p class="step__keypoint__label">정류장 도착 목표</p>
+        <b>오전 <span class="summary__time">11:05</span></b>
+      </div>
+      <ul class="step__notes">
+        <li>봉담아이파크아파트에서 이파크정문 정류장까지 도보로 이동</li>
+        <li>버스 배차가 20~25분이라 늦으면 오래 기다려야 합니다</li>
+      </ul>
+      <div class="maps" data-maps
+        data-name="이파크정문 정류장"
+        data-query="봉담 이파크정문 버스정류장"
+        data-lat="37.20528" data-lng="126.99500"></div>
+    </article>
+
+    <!-- ============ STEP 2: bus 7790 ============ -->
+    <article class="card step step--bus" data-step="2">
+      <button class="step__check" type="button" aria-label="2단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">2</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16M8 17v3M16 17v3"/><circle cx="8.5" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>
+            7790번 직행버스
+          </div>
+          <h3 class="step__title">이파크정문 &rarr; 사당역</h3>
+        </div>
+      </div>
+      <div class="step__keypoint">
+        <p class="step__keypoint__label">탑승 시간</p>
+        <b>오전 <span class="summary__time">11:10</span></b>
+      </div>
+      <ul class="step__notes">
+        <li>약 52분 소요 &mdash; 사당역 도착 12:02 전후</li>
+        <li>빨간 직행버스 7790번 (잘못 타지 않게 번호 확인)</li>
+        <li>하차역 안내 방송: <b>사당역</b></li>
+      </ul>
+      <div class="maps" data-maps
+        data-name="사당역"
+        data-query="사당역"
+        data-lat="37.47657" data-lng="126.98168"></div>
+    </article>
+
+    <!-- ============ STEP 3: line 4 transfer ============ -->
+    <article class="card step step--line4" data-step="3">
+      <button class="step__check" type="button" aria-label="3단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">3</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="16" rx="3"/><path d="M4 14h16M9 19l-2 3M15 19l2 3"/><circle cx="8" cy="9" r="1"/><circle cx="16" cy="9" r="1"/></svg>
+            지하철 4호선 환승
+          </div>
+          <h3 class="step__title">사당역 4호선 타기</h3>
+        </div>
+      </div>
+      <div class="step__keypoint">
+        <p class="step__keypoint__label">타야 할 방면</p>
+        <span class="keypoint--xl"><b>진접 / 당고개</b></span>
+      </div>
+      <ul class="step__notes">
+        <li>쉽게: <b>서울역·명동·충무로</b> 가는 열차를 타면 됩니다</li>
+        <li>환승 표지판 <b>4호선</b>(하늘색) 따라가기</li>
+      </ul>
+      <div class="warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><b>오이도 / 안산</b> 방면은 반대 방향! 타면 안 됩니다.</span>
+      </div>
+    </article>
+
+    <!-- ============ STEP 4: line 4 ride ============ -->
+    <article class="card step step--line4-ride" data-step="4">
+      <button class="step__check" type="button" aria-label="4단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">4</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            4호선 이동
+          </div>
+          <h3 class="step__title">사당 &rarr; 서울역 (7개 역)</h3>
+        </div>
+      </div>
+      <div class="stations stations--line4" aria-label="4호선 정차 역">
+        <div class="station station--start">
+          <div class="station__dot"></div>
+          <div class="station__name">사당</div>
+          <span class="station__tag">출발</span>
+        </div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">총신대입구(이수)</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">동작</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">이촌</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">신용산</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">삼각지</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">숙대입구</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station station--end">
+          <div class="station__dot"></div>
+          <div class="station__name">서울역</div>
+          <span class="station__tag">내리세요</span>
+        </div>
+      </div>
+      <ul class="step__notes">
+        <li><b>서울역</b>에서 내려서 1호선 환승</li>
+      </ul>
+    </article>
+
+    <!-- ============ STEP 5: line 1 transfer ============ -->
+    <article class="card step step--line1" data-step="5">
+      <button class="step__check" type="button" aria-label="5단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">5</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            지하철 1호선 환승
+          </div>
+          <h3 class="step__title">서울역 1호선 타기</h3>
+        </div>
+      </div>
+      <div class="step__keypoint">
+        <p class="step__keypoint__label">타야 할 방향</p>
+        <span class="keypoint--xl"><b>시청 · 종각</b></span>
+      </div>
+      <ul class="step__notes">
+        <li><b>밖으로 나가지 마세요</b> &mdash; 지하철 안에서 1호선 환승 표지판 따라가기</li>
+        <li>열차 행선지: <b>청량리 / 광운대 / 의정부 / 소요산 / 동두천</b> 중 하나면 맞음</li>
+      </ul>
+      <div class="warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span><b>인천 / 천안 / 신창 / 서동탄</b> 방면은 반대! 타면 안 됩니다.</span>
+      </div>
+    </article>
+
+    <!-- ============ STEP 6: line 1 ride ============ -->
+    <article class="card step step--line1-ride" data-step="6">
+      <button class="step__check" type="button" aria-label="6단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">6</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            1호선 이동
+          </div>
+          <h3 class="step__title">서울역 &rarr; 종각 (2개 역)</h3>
+        </div>
+      </div>
+      <div class="stations stations--line1" aria-label="1호선 정차 역">
+        <div class="station station--start">
+          <div class="station__dot"></div>
+          <div class="station__name">서울역</div>
+          <span class="station__tag">출발</span>
+        </div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station"><div class="station__dot"></div><div class="station__name">시청</div></div>
+        <div class="station__row station__row--rail"><div class="station__rail"></div></div>
+        <div class="station station--end">
+          <div class="station__dot"></div>
+          <div class="station__name">종각</div>
+          <span class="station__tag">내리세요</span>
+        </div>
+      </div>
+      <ul class="step__notes">
+        <li><b>종각역</b>에서 내리세요</li>
+      </ul>
+    </article>
+
+    <!-- ============ STEP 7: exit 3-1 ============ -->
+    <article class="card step step--exit" data-step="7">
+      <button class="step__check" type="button" aria-label="7단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">7</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21V9l6-6 6 6v12M3 21h18M9 21h6v-6h-6z"/></svg>
+            종각역 출구
+          </div>
+          <h3 class="step__title">3-1번 출구로 나가기</h3>
+        </div>
+      </div>
+      <div class="step__keypoint">
+        <p class="step__keypoint__label">출구 번호</p>
+        <span class="keypoint--xl"><b>3-1번 출구</b></span>
+      </div>
+      <ul class="step__notes">
+        <li>출구로 나가서 <b>인사동5길 방향으로 직진</b></li>
+        <li>꽃의 시간까지 약 148m (도보 2~3분)</li>
+      </ul>
+      <div class="maps" data-maps
+        data-name="종각역 3-1번 출구"
+        data-query="종각역 3-1번 출구"
+        data-lat="37.57008" data-lng="126.98308"></div>
+    </article>
+
+    <!-- ============ STEP 8: arrive ============ -->
+    <article class="card step step--arrive" data-step="8">
+      <button class="step__check" type="button" aria-label="8단계 완료" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="step__head">
+        <div class="step__num">8</div>
+        <div class="step__heading">
+          <div class="step__kind">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            도착지
+          </div>
+          <h3 class="step__title">꽃의 시간 &rarr; 갤러리 라메르</h3>
+        </div>
+      </div>
+
+      <div class="destmap" id="destmap" aria-label="종각역에서 갤러리 라메르까지 지도">
+        <div class="destmap__hint" id="destmapHint"><b>파란 점</b>이 내 위치 &middot; 핀 누르면 이름 표시</div>
+      </div>
+      <div class="destmap__legend">
+        <span><i style="background:#6b21a8"></i> 종각역 출구</span>
+        <span><i style="background:#ec4899"></i> 꽃의 시간</span>
+        <span><i style="background:#e0654b"></i> 갤러리 라메르</span>
+        <span><i style="background:#2563eb"></i> 내 위치</span>
+      </div>
+
+      <div class="place">
+        <p class="place__name">꽃의 시간</p>
+        <p class="place__addr">서울 종로구 인사동5길 54 1층<br>(종각역 3-1번 출구에서 약 148m)</p>
+        <a class="place__open" href="https://naver.me/5EUXkGYv" target="_blank" rel="noopener noreferrer">
+          네이버 지도로 열기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+
+      <div class="place">
+        <p class="place__name">갤러리 라메르</p>
+        <p class="place__addr">서울 종로구 인사동5길 26<br>(꽃의 시간에서 도보 2~4분)</p>
+        <a class="place__open" href="https://naver.me/F3TXAUwk" target="_blank" rel="noopener noreferrer">
+          네이버 지도로 열기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      </div>
+
+      <ul class="step__notes" style="margin-top:14px">
+        <li>두 곳 모두 인사동5길 같은 길에 있어요</li>
+        <li>도착 예상: 오후 12:45~12:55</li>
+      </ul>
+    </article>
+
+    <!-- ============ FOOTER ============ -->
+    <section class="footer">
+      <div class="footer__row">
+        <span class="footer__label">총 소요시간</span>
+        <span class="footer__value">약 1시간 35분</span>
+      </div>
+      <div class="footer__row">
+        <span class="footer__label">예상 도착</span>
+        <span class="footer__value">12:45~12:55</span>
+      </div>
+      <div class="footer__row">
+        <span class="footer__label">교통비</span>
+        <span class="footer__value">약 3,600원</span>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cf55a1d5554efe23cb943b5397d00e36&autoload=false"></script>
+  <script>
+    'use strict';
+
+    /* -------- localStorage state -------- */
+    const STORE_CHECKS = 'mom-trip-checks-v1';
+
+    function loadChecks() {
+      try { return JSON.parse(localStorage.getItem(STORE_CHECKS) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function saveChecks(state) {
+      try { localStorage.setItem(STORE_CHECKS, JSON.stringify(state)); }
+      catch (e) { /* ignore */ }
+    }
+
+    /* -------- check buttons -------- */
+    const cards = document.querySelectorAll('.card.step');
+    const total = cards.length;
+    const state = loadChecks();
+
+    function updateProgress() {
+      const done = Object.values(state).filter(Boolean).length;
+      document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+      document.getElementById('progressNum').textContent = done;
+    }
+
+    cards.forEach(card => {
+      const stepId = card.dataset.step;
+      const btn = card.querySelector('.step__check');
+      if (state[stepId]) {
+        card.classList.add('is-done');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isDone = card.classList.toggle('is-done');
+        btn.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+        state[stepId] = isDone;
+        saveChecks(state);
+        updateProgress();
+      });
+    });
+    updateProgress();
+
+    /* -------- geolocation (shared) -------- */
+    let userPos = null;
+    let watchId = null;
+    const userPosListeners = [];
+    const geoBtn = document.getElementById('geoBtn');
+    const geoLabel = document.getElementById('geoLabel');
+    const geoStatus = document.getElementById('geoStatus');
+
+    function onUserPos(fn) { userPosListeners.push(fn); if (userPos) fn(userPos); }
+    function emitPos() { userPosListeners.forEach(fn => fn(userPos)); }
+
+    function startWatching() {
+      if (!('geolocation' in navigator)) {
+        geoStatus.textContent = '이 기기에서는 위치를 받을 수 없어요';
+        return;
+      }
+      geoLabel.textContent = '위치 확인 중...';
+      geoStatus.textContent = '잠시만 기다려 주세요';
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      watchId = navigator.geolocation.watchPosition(
+        (p) => {
+          userPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
+          geoBtn.classList.add('is-active');
+          geoBtn.setAttribute('aria-pressed', 'true');
+          geoLabel.textContent = '내 위치 켜져 있음';
+          geoStatus.textContent = '지도에 실시간으로 표시됩니다';
+          emitPos();
+        },
+        (err) => {
+          geoLabel.textContent = '내 위치 켜기';
+          geoStatus.textContent = err.code === 1
+            ? '권한이 거부됐어요. 폰 설정에서 허용해 주세요'
+            : '위치를 가져오지 못했어요. 다시 눌러 주세요';
+          geoBtn.classList.remove('is-active');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+      );
+    }
+    geoBtn.addEventListener('click', startWatching);
+
+    /* -------- map deep links -------- */
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const enc = encodeURIComponent;
+
+    // Use https Universal Links so the native app opens if installed,
+    // otherwise web map opens in browser. Works on both iOS and Android.
+    function buildNaverUrl(d) {
+      return `https://map.naver.com/p/search/${enc(d.query || d.name)}`;
+    }
+
+    function buildKakaoUrl(d) {
+      // link/to opens directions panel with destination pre-filled.
+      return `https://map.kakao.com/link/to/${enc(d.name)},${d.lat},${d.lng}`;
+    }
+
+    function buildTmapUrl(d) {
+      // Tmap supports deep link only on mobile; fall back to Naver on desktop.
+      if (isMobile) {
+        return `tmap://route?goalname=${enc(d.name)}&goalx=${d.lng}&goaly=${d.lat}`;
+      }
+      return `https://map.naver.com/p/search/${enc(d.query || d.name)}`;
+    }
+
+    function makeBtn(brand, name, url) {
+      const a = document.createElement('a');
+      a.className = `map-btn map-btn--${brand}`;
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `<span class="map-btn__brand">길찾기</span><span class="map-btn__name">${name}</span>`;
+      return a;
+    }
+
+    /* -------- destination map (Kakao Maps) -------- */
+    const DESTS = [
+      { lat: 37.57025, lng: 126.98330, name: '종각역 3-1번 출구', color: '#6b21a8', label: '①' },
+      { lat: 37.57387, lng: 126.98594, name: '꽃의 시간',         color: '#ec4899', label: '②' },
+      { lat: 37.57288, lng: 126.98568, name: '갤러리 라메르',     color: '#e0654b', label: '③' },
+    ];
+
+    function showMapError(msg) {
+      const el = document.getElementById('destmap');
+      if (el) el.innerHTML = `<div style="padding:24px;text-align:center;color:#888;font-size:0.95rem;line-height:1.6;">${msg}</div>`;
+    }
+
+    function makePinHtml(d) {
+      return `<div class="pin-marker" style="background:${d.color}"><span>${d.label}</span></div>`;
+    }
+
+    function initKakaoMap() {
+      if (typeof kakao === 'undefined' || !kakao.maps) {
+        showMapError('지도를 불러올 수 없어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.');
+        return;
+      }
+      kakao.maps.load(() => {
+        const container = document.getElementById('destmap');
+        const map = new kakao.maps.Map(container, {
+          center: new kakao.maps.LatLng(37.5722, 126.9852),
+          level: 3,
+        });
+        map.setZoomable(true);
+        new kakao.maps.ZoomControl();
+
+        const bounds = new kakao.maps.LatLngBounds();
+        DESTS.forEach(d => {
+          const pos = new kakao.maps.LatLng(d.lat, d.lng);
+          bounds.extend(pos);
+          const overlay = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: makePinHtml(d),
+            yAnchor: 1,
+            xAnchor: 0.5,
+            clickable: true,
+          });
+          overlay.setMap(map);
+          // Name label always visible above marker
+          const labelOverlay = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: `<div class="pin-label">${d.name}</div>`,
+            yAnchor: 2.4,
+            xAnchor: 0.5,
+          });
+          labelOverlay.setMap(map);
+        });
+        map.setBounds(bounds, 30, 30, 30, 30);
+
+        // Real-time user location
+        let userOverlay = null;
+        let userCircle = null;
+        onUserPos((p) => {
+          const pos = new kakao.maps.LatLng(p.lat, p.lng);
+          if (!userOverlay) {
+            userOverlay = new kakao.maps.CustomOverlay({
+              position: pos,
+              content: '<div class="pin-marker pin-marker--user"></div>',
+              yAnchor: 0.5,
+              xAnchor: 0.5,
+              zIndex: 1000,
+            });
+            userOverlay.setMap(map);
+          } else {
+            userOverlay.setPosition(pos);
+          }
+          if (p.acc && p.acc < 500) {
+            if (!userCircle) {
+              userCircle = new kakao.maps.Circle({
+                center: pos,
+                radius: p.acc,
+                strokeWeight: 1,
+                strokeColor: '#2563eb',
+                strokeOpacity: 0.4,
+                fillColor: '#2563eb',
+                fillOpacity: 0.08,
+              });
+              userCircle.setMap(map);
+            } else {
+              userCircle.setOptions({ center: pos, radius: p.acc });
+            }
+          }
+        });
+
+        // Re-center when window resizes (e.g., orientation change)
+        window.addEventListener('resize', () => {
+          setTimeout(() => map.relayout(), 100);
+        });
+      });
+    }
+
+    if (document.readyState === 'complete') {
+      initKakaoMap();
+    } else {
+      window.addEventListener('load', initKakaoMap);
+    }
+
+    document.querySelectorAll('[data-maps]').forEach(container => {
+      const d = {
+        name: container.dataset.name,
+        query: container.dataset.query,
+        lat: parseFloat(container.dataset.lat),
+        lng: parseFloat(container.dataset.lng),
+      };
+      container.appendChild(makeBtn('naver', '네이버지도', buildNaverUrl(d)));
+      container.appendChild(makeBtn('kakao', '카카오맵', buildKakaoUrl(d)));
+      container.appendChild(makeBtn('tmap', '티맵', buildTmapUrl(d)));
+    });
+
+  </script>
+</body>
+</html>
